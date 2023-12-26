@@ -3,73 +3,81 @@
 
 
 # Manages an API Gateway REST API
-resource "aws_api_gateway_rest_api" "example_api" {
+resource "aws_api_gateway_rest_api" "api" {
   description = "Proxy to handle requests to our API"
-  name        = "api-gateway-jeff"
+  name        = var.aws_api_gateway_name
 }
 
-resource "aws_api_gateway_method" "post_form" {
-  rest_api_id   = aws_api_gateway_rest_api.example_api.id
-  resource_id   = aws_api_gateway_rest_api.example_api.root_resource_id
+/*
+API Resources
+
+Examples:
+/health
+/v1/usper_status
+
+*/
+
+resource "aws_api_gateway_resource" "resource_health" {
+  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
+  path_part   = "health"
+  rest_api_id = aws_api_gateway_rest_api.api.id
+}
+
+resource "aws_api_gateway_resource" "resource_version" {
+  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
+  path_part   = "v1"
+  rest_api_id = aws_api_gateway_rest_api.api.id
+}
+
+resource "aws_api_gateway_resource" "resource_usper_status" {
+  parent_id   = aws_api_gateway_resource.resource_version.id
+  path_part   = "usper_status"
+  rest_api_id = aws_api_gateway_rest_api.api.id
+}
+
+
+
+
+/*
+API Methods
+
+Examples:
+GET
+POST
+
+*/
+
+resource "aws_api_gateway_method" "get_health" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.resource_health.id
   http_method   = "GET"
   authorization = "NONE"
 }
 
-# Provides an API Gateway Resource
-resource "aws_api_gateway_resource" "root_resource" {
-  parent_id   = aws_api_gateway_rest_api.example_api.root_resource_id
-  path_part   = "v1"
-  rest_api_id = aws_api_gateway_rest_api.example_api.id
-}
-
-resource "aws_api_gateway_resource" "nested_resource" {
-  parent_id = aws_api_gateway_resource.root_resource.id
-  path_part = "test"
-  rest_api_id = aws_api_gateway_rest_api.example_api.id
-}
-
-
-resource "aws_api_gateway_resource" "nested_resource_third" {
-  parent_id = aws_api_gateway_resource.nested_resource.id
-  path_part = "deeper"
-  rest_api_id = aws_api_gateway_rest_api.example_api.id
-}
-
-
-# Provides an API Gateway Resource
-# resource "aws_api_gateway_resource" "example_nested" {
-#   parent_id   = aws_api_gateway_resource.example_base.root_resource_id
-#   path_part   = "nested"
-#   rest_api_id = aws_api_gateway_rest_api.example.id
-# }
-
-
-
-
-
-# # Provides a HTTP Method for an API Gateway Resource.
-# resource "aws_api_gateway_method" "example" {
-#   authorization = "NONE"
+# resource "aws_api_gateway_method" "get_usper_status" {
+#   rest_api_id   = aws_api_gateway_rest_api.api.id
+#   resource_id   = aws_api_gateway_resource.resource_usper_status.id
 #   http_method   = "GET"
-#   resource_id   = aws_api_gateway_resource.example_base.id
-#   rest_api_id   = aws_api_gateway_rest_api.example.id
+#   authorization = "NONE"
 # }
 
-# # Provides an HTTP Method Integration for an API Gateway Integration
-# resource "aws_api_gateway_integration" "example" {
-#   http_method = aws_api_gateway_method.example.http_method
-#   resource_id = aws_api_gateway_resource.example_base.id
-#   rest_api_id = aws_api_gateway_rest_api.example.id
-#   type        = "MOCK"
-# }
 
-# resource "aws_api_gateway_deployment" "example" {
-#   rest_api_id = aws_api_gateway_rest_api.example.id
-# }
 
-# # Manages an API Gateway Stage
-# resource "aws_api_gateway_stage" "example" {
-#   deployment_id = aws_api_gateway_deployment.example.id
-#   rest_api_id   = aws_api_gateway_rest_api.example.id
-#   stage_name    = "example"
-# }
+# Provides an HTTP Method Integration for an API Gateway Integration
+resource "aws_api_gateway_integration" "api_integration" {
+  http_method = aws_api_gateway_method.get_health.http_method
+  resource_id = aws_api_gateway_resource.resource_health.id
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  type        = "MOCK"
+}
+
+resource "aws_api_gateway_deployment" "api_deployment" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+}
+
+# Manages an API Gateway Stage
+resource "aws_api_gateway_stage" "stage_dev" {
+  deployment_id = aws_api_gateway_deployment.api_deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  stage_name    = var.aws_api_gateway_stage_name
+}

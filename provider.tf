@@ -10,10 +10,24 @@
 provider "aws" {
   region  = "us-east-1"
   profile = "default"
+  default_tags {
+    tags = {
+      Environment = "DEVTEST"
+      cfpProject  = "TFProviders"
+      Key         = "Value"
+    }
+  }
 }
 
 # alternative provider
 provider "aws" {
   alias  = "west"
   region = "us-west-1"
+  default_tags {
+    tags = {
+      Environment = "DEVTEST"
+      cfpProject  = "TFProviders"
+      Key         = "Value"
+    }
+  }
 }
