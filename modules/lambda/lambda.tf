@@ -53,5 +53,5 @@ resource "aws_lambda_permission" "apigw_lambda" {
   function_name = aws_lambda_function.aws_lambda_get_health.function_name
   principal = "apigateway.amazonaws.com"
 
-  source_arn = "${var.deployment_execution_arn}/*/*/*"
+  # source_arn = "${var.deployment_execution_arn}/*/*/*"
 }

@@ -71,7 +71,7 @@ resource "aws_api_gateway_integration" "get_health_lambda_integration" {
   http_method             = aws_api_gateway_method.get_health.http_method
   integration_http_method = "GET"
   type                    = "AWS"
-  uri                     = var.lambda_invoke_arn
+  # uri                     = var.lambda_invoke_arn
 }
 
 resource "aws_api_gateway_method_response" "get_health_method_response" {
