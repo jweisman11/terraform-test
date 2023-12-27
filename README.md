@@ -10,4 +10,15 @@ Goal is to create an API Gateway with multiple endpoints that proxy Lambda funct
 
 - `terraform fmt` only works in the current directory. To get all files, use `terraform fmt --recursive`
 
--
+- To skip being prompted to type `yes`, run `terraform apply -auto-approve`
+
+- ## For API Gateway, each method needs to have:
+
+### TODO
+
+- Figure out how to set-up S3 as remote backend
+
+### Resources
+
+- https://youtu.be/gxPykhPxRW0?si=CoWOs9AB0yyglOjW
+- https://spacelift.io/blog/terraform-api-gateway

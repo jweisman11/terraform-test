@@ -6,6 +6,10 @@
 resource "aws_api_gateway_rest_api" "api" {
   description = "Proxy to handle requests to our API"
   name        = var.aws_api_gateway_name
+
+  endpoint_configuration {
+    types = ["EDGE"]
+  }
 }
 
 /*
@@ -45,39 +49,60 @@ Examples:
 GET
 POST
 
+Each method needs 3 accompanying resources:
+1) aws_api_gateway_integration
+2) aws_api_gateway_method_response
+3) aws_api_gateway_integration_response
+
 */
 
+####### GET /HEALTH ########
 resource "aws_api_gateway_method" "get_health" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
   resource_id   = aws_api_gateway_resource.resource_health.id
   http_method   = "GET"
   authorization = "NONE"
+  api_key_required = true
 }
 
-# resource "aws_api_gateway_method" "get_usper_status" {
-#   rest_api_id   = aws_api_gateway_rest_api.api.id
-#   resource_id   = aws_api_gateway_resource.resource_usper_status.id
-#   http_method   = "GET"
-#   authorization = "NONE"
-# }
-
-
-
-# Provides an HTTP Method Integration for an API Gateway Integration
-resource "aws_api_gateway_integration" "api_integration" {
-  http_method = aws_api_gateway_method.get_health.http_method
+resource "aws_api_gateway_integration" "get_health_lambda_integration" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
   resource_id = aws_api_gateway_resource.resource_health.id
-  rest_api_id = aws_api_gateway_rest_api.api.id
-  type        = "MOCK"
+  http_method = aws_api_gateway_method.get_health.http_method
+  integration_http_method = "GET"
+  type = "MOCK"
 }
 
-resource "aws_api_gateway_deployment" "api_deployment" {
+resource "aws_api_gateway_method_response" "get_health_method_response" {
   rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.resource_health.id
+  http_method = aws_api_gateway_method.get_health.http_method
+  status_code = 200
 }
 
-# Manages an API Gateway Stage
-resource "aws_api_gateway_stage" "stage_dev" {
-  deployment_id = aws_api_gateway_deployment.api_deployment.id
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  stage_name    = var.aws_api_gateway_stage_name
+resource "aws_api_gateway_integration_response" "get_health_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.resource_health.id
+  http_method = aws_api_gateway_method.get_health.http_method
+  status_code = aws_api_gateway_method_response.get_health_method_response.status_code
+
+  depends_on = [
+    aws_api_gateway_method.get_health,
+    aws_api_gateway_integration.get_health_lambda_integration
+  ]
+}
+
+
+
+/*
+Deployment for all API integrations
+*/
+
+resource "aws_api_gateway_deployment" "dev_deployment" {
+  depends_on = [
+    aws_api_gateway_integration.get_health_lambda_integration,
+  ]
+
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  stage_name = "dev"
 }
