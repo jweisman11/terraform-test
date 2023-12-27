@@ -58,19 +58,20 @@ Each method needs 3 accompanying resources:
 
 ####### GET /HEALTH ########
 resource "aws_api_gateway_method" "get_health" {
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.resource_health.id
-  http_method   = "GET"
-  authorization = "NONE"
+  rest_api_id      = aws_api_gateway_rest_api.api.id
+  resource_id      = aws_api_gateway_resource.resource_health.id
+  http_method      = "GET"
+  authorization    = "NONE"
   api_key_required = true
 }
 
 resource "aws_api_gateway_integration" "get_health_lambda_integration" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
-  resource_id = aws_api_gateway_resource.resource_health.id
-  http_method = aws_api_gateway_method.get_health.http_method
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.resource_health.id
+  http_method             = aws_api_gateway_method.get_health.http_method
   integration_http_method = "GET"
-  type = "MOCK"
+  type                    = "AWS"
+  uri                     = var.lambda_invoke_arn
 }
 
 resource "aws_api_gateway_method_response" "get_health_method_response" {
@@ -104,5 +105,5 @@ resource "aws_api_gateway_deployment" "dev_deployment" {
   ]
 
   rest_api_id = aws_api_gateway_rest_api.api.id
-  stage_name = "dev"
+  stage_name  = "dev"
 }
